@@ -18,6 +18,22 @@ jobs:
           "$RUNNER_TEMP/emsdk/emsdk" install 3.1.64
           "$RUNNER_TEMP/emsdk/emsdk" activate 3.1.64
 
+      - name: Восстановить игровые ресурсы из закреплённой web-сборки
+        run: |
+          curl --fail --location --silent --show-error \
+            https://raw.githubusercontent.com/alula/SpaceCadetPinball/a93547299a2ed7bd602630c0be3a43648e25a886/SpaceCadetPinball.js \
+            --output "$RUNNER_TEMP/SpaceCadetPinball.js"
+          curl --fail --location --silent --show-error \
+            https://raw.githubusercontent.com/alula/SpaceCadetPinball/a93547299a2ed7bd602630c0be3a43648e25a886/SpaceCadetPinball.data \
+            --output "$RUNNER_TEMP/SpaceCadetPinball.data"
+          printf '%s  %s\n' \
+            '53eea8defa123fc74d602fb89fea87afdaedd93ab8d106f46c75130ce5afd902' \
+            "$RUNNER_TEMP/SpaceCadetPinball.data" | sha256sum --check
+          node .github/scripts/unpack-web-resources.mjs \
+            "$RUNNER_TEMP/SpaceCadetPinball.js" \
+            "$RUNNER_TEMP/SpaceCadetPinball.data" \
+            game_resources
+
       - name: Собрать Space Cadet для браузера
         run: |
           source "$RUNNER_TEMP/emsdk/emsdk_env.sh"
