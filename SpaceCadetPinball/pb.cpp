@@ -26,6 +26,20 @@
 #include "GroupData.h"
 #include "partman.h"
 #include "score.h"
+
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+
+namespace
+{
+	std::string ruromans_player_name;
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE void ruromans_set_player_name(const char* name)
+{
+	ruromans_player_name = name ? std::string(name).substr(0, 31) : std::string();
+}
+#endif
 #include "TPinballTable.h"
 #include "TTextBox.h"
 
@@ -555,6 +569,18 @@ void pb::end_game()
 		}
 	}
 
+#ifdef __EMSCRIPTEN__
+	if (!demo_mode && !MainTable->CheatsUsed && playerCount > 0)
+	{
+		EM_ASM({
+			window.parent.postMessage({
+				type: 'ruromans:pinball-game-over',
+				score: $0
+			}, window.location.origin);
+		}, scores[0]);
+	}
+#endif
+
 	if (!demo_mode && !MainTable->CheatsUsed)
 	{
 		for (auto i = 0; i < playerCount; ++i)
@@ -562,7 +588,13 @@ void pb::end_game()
 			int position = high_score::get_score_position(highscore_table, scores[i]);
 			if (position >= 0)
 			{
-				strncpy(String1, pinball::get_rc_string(scoreIndex[i] + 26, 0), sizeof String1 - 1);
+				#ifdef __EMSCRIPTEN__
+				if (scoreIndex[i] == 0 && !ruromans_player_name.empty())
+					strncpy(String1, ruromans_player_name.c_str(), sizeof String1 - 1);
+				else
+				#endif
+					strncpy(String1, pinball::get_rc_string(scoreIndex[i] + 26, 0), sizeof String1 - 1);
+				String1[sizeof String1 - 1] = 0;
 				high_score::show_and_set_high_score_dialog(highscore_table, scores[i], position, String1);
 			}
 		}
