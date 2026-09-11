@@ -33,6 +33,23 @@
 namespace
 {
 	std::string ruromans_player_name;
+	int ruromans_last_score = 0;
+	int ruromans_last_score_publish_at = 0;
+
+	void ruromans_publish_live_score(int score)
+	{
+		if (score <= ruromans_last_score || pb::time_ticks - ruromans_last_score_publish_at < 500)
+			return;
+
+		ruromans_last_score = score;
+		ruromans_last_score_publish_at = pb::time_ticks;
+		EM_ASM({
+			window.parent.postMessage({
+				type: 'ruromans:pinball-score',
+				score: $0
+			}, window.location.origin);
+		}, score);
+	}
 }
 
 #endif
@@ -229,6 +246,10 @@ void pb::toggle_demo()
 void pb::replay_level(int demoMode)
 {
 	demo_mode = demoMode;
+#ifdef __EMSCRIPTEN__
+	ruromans_last_score = 0;
+	ruromans_last_score_publish_at = time_ticks - 500;
+#endif
 	mode_change(1);
 	if (options::Options.Music)
 		midi::play_pb_theme(0);
@@ -271,6 +292,10 @@ void pb::frame(int dtMilliSec)
 		timer::check();
 		render::update();
 		score::update(MainTable->CurScoreStruct);
+#ifdef __EMSCRIPTEN__
+		if (!demo_mode && !MainTable->CheatsUsed && MainTable->CurrentPlayer == 0)
+			ruromans_publish_live_score(MainTable->CurScoreStruct->Score);
+#endif
 		if (!MainTable->TiltLockFlag)
 		{
 			if (nudge::nudge_count > 0.5f)
