@@ -361,6 +361,51 @@
             }
         };
         Module.setStatus('Downloading...');
+
+        // The whole table is the mouse control surface in the Ruromans embed:
+        // hold the left or right mouse button to hold the matching flipper.
+        (function installMouseFlippers() {
+            var canvas = document.getElementById('canvas');
+            var activeButtons = new Set();
+            var controls = {
+                0: { key: 'z', code: 'KeyZ', keyCode: 90 },
+                2: { key: '/', code: 'Slash', keyCode: 191 }
+            };
+
+            function send(button, pressed) {
+                var control = controls[button];
+                if (!control) return;
+                var event = new KeyboardEvent(pressed ? 'keydown' : 'keyup', {
+                    key: control.key,
+                    code: control.code,
+                    bubbles: true,
+                    cancelable: true
+                });
+                Object.defineProperties(event, {
+                    keyCode: { get: function () { return control.keyCode; } },
+                    which: { get: function () { return control.keyCode; } }
+                });
+                canvas.dispatchEvent(event);
+            }
+
+            canvas.addEventListener('mousedown', function (event) {
+                if (!controls[event.button] || activeButtons.has(event.button)) return;
+                event.preventDefault();
+                activeButtons.add(event.button);
+                send(event.button, true);
+                canvas.focus();
+            });
+            window.addEventListener('mouseup', function (event) {
+                if (!activeButtons.delete(event.button)) return;
+                event.preventDefault();
+                send(event.button, false);
+            });
+            window.addEventListener('blur', function () {
+                activeButtons.forEach(function (button) { send(button, false); });
+                activeButtons.clear();
+            });
+        })();
+
         window.onerror = function () {
             Module.setStatus('Exception thrown, see JavaScript console');
             Module.setStatus = function (text) {
