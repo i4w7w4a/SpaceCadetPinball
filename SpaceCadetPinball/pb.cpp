@@ -35,10 +35,6 @@ namespace
 	std::string ruromans_player_name;
 }
 
-extern "C" EMSCRIPTEN_KEEPALIVE void ruromans_set_player_name(const char* name)
-{
-	ruromans_player_name = name ? std::string(name).substr(0, 31) : std::string();
-}
 #endif
 #include "TPinballTable.h"
 #include "TTextBox.h"
@@ -49,6 +45,25 @@ int pb::time_ticks = 0, pb::demo_mode = 0, pb::cheat_mode = 0, pb::game_mode = 2
 float pb::time_now, pb::time_next, pb::ball_speed_limit;
 high_score_struct pb::highscore_table[5];
 bool pb::FullTiltMode = false;
+
+
+char* pb::player_name(int index)
+{
+#ifdef __EMSCRIPTEN__
+	if (index == 0 && !ruromans_player_name.empty())
+		return const_cast<char*>(ruromans_player_name.c_str());
+#endif
+	return pinball::get_rc_string(index + 26, 0);
+}
+
+#ifdef __EMSCRIPTEN__
+extern "C" EMSCRIPTEN_KEEPALIVE void ruromans_set_player_name(const char* name)
+{
+	ruromans_player_name = name ? std::string(name).substr(0, 31) : std::string();
+	if (pinball::InfoTextBox && !ruromans_player_name.empty())
+		pinball::InfoTextBox->Display(pb::player_name(0), -1.0);
+}
+#endif
 
 
 int pb::init()

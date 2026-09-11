@@ -59,6 +59,7 @@ public:
 	static void launch_ball();
 	static void end_game();
 	static void high_scores();
+	static char* player_name(int index);
 	static void tilt_no_more();
 	static bool chk_highscore();
 	static float collide(float timeNow, float timeDelta, TBall* ball);
