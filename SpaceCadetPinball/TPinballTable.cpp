@@ -385,7 +385,7 @@ int TPinballTable::Message(int code, float value)
 		if (Demo->ActiveFlag)
 			rc_text = pinball::get_rc_string(30, 0);
 		else
-			rc_text = pinball::get_rc_string(26, 0);
+			rc_text = pb::player_name(0);
 		pinball::InfoTextBox->Display(rc_text, -1.0);
 		if (Demo)
 			Demo->Message(1014, 0.0);
@@ -477,7 +477,7 @@ int TPinballTable::Message(int code, float value)
 				if (Demo->ActiveFlag)
 					textboxText = pinball::get_rc_string(30, 0);
 				else
-					textboxText = pinball::get_rc_string(26, 0);
+					textboxText = pb::player_name(0);
 				pinball::InfoTextBox->Display(textboxText, -1.0);
 				break;
 			}
@@ -521,7 +521,7 @@ int TPinballTable::Message(int code, float value)
 				if (Demo->ActiveFlag)
 					textboxText = pinball::get_rc_string(30, 0);
 				else
-					textboxText = pinball::get_rc_string(26, 0);
+					textboxText = pb::player_name(0);
 				break;
 			case 1:
 				if (Demo->ActiveFlag)
