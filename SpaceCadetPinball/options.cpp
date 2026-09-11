@@ -88,7 +88,13 @@ void options::init()
 	Options.BottomTableBumpKey = Options.BottomTableBumpKeyDft;
 	Options.UniformScaling = true;
 	Options.Sounds = get_int("Sounds", Options.Sounds);
+	#ifdef __EMSCRIPTEN__
+	// The Ruromans embed starts quietly. Mechanical sound effects remain enabled,
+	// while the original music never competes with the site's own player.
+	Options.Music = 0;
+	#else
 	Options.Music = get_int("Music", Options.Music);
+	#endif
 	Options.FullScreen = get_int("FullScreen", Options.FullScreen);
 	Options.Players = get_int("Players", Options.Players);
 	Options.LeftFlipperKey = get_int("Left Flipper key", Options.LeftFlipperKey);
